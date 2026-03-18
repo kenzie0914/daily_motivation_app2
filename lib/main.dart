@@ -124,14 +124,28 @@ class _HomeScreenState extends State<HomeScreen> {
   String currentQuote = "Press the button to get motivated!";
   final List<String> favorites = [];
 
-  // Change quote
+  // Button color
+  Color _buttonColor = Colors.blue;
+
+  // Background color
+  Color _backgroundColor = Colors.blue.shade100;
+  final List<Color> _bgColors = [
+    Colors.blue.shade100,
+    Colors.green.shade100,
+    Colors.orange.shade100,
+    Colors.purple.shade100,
+    Colors.yellow.shade100,
+  ];
+  int _bgColorIndex = 0;
+
+  // Generate new quote
   void changeText() {
     setState(() {
       currentQuote = quotes[random.nextInt(quotes.length)];
     });
   }
 
-  // Like/unlike quote
+  // Like/unlike
   void toggleFavorite() {
     setState(() {
       if (favorites.contains(currentQuote)) {
@@ -147,10 +161,63 @@ class _HomeScreenState extends State<HomeScreen> {
     Share.share(currentQuote);
   }
 
+  // Change background color
+  void changeBackgroundColor() {
+    setState(() {
+      _bgColorIndex = (_bgColorIndex + 1) % _bgColors.length;
+      _backgroundColor = _bgColors[_bgColorIndex];
+    });
+  }
+
+  // Pick button color (5 choices)
+  Future<void> _showColorPickerDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Choose a button color'),
+        content: Wrap(
+          spacing: 10,
+          children: [
+            _buildColorOption(Colors.red),
+            _buildColorOption(Colors.blue),
+            _buildColorOption(Colors.green),
+            _buildColorOption(Colors.orange),
+            _buildColorOption(Colors.purple),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildColorOption(Color color) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _buttonColor = color;
+        });
+        Navigator.pop(context);
+      },
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: _buttonColor == color
+                ? Colors.black
+                : Colors.transparent,
+            width: 3,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue.shade100,
+      backgroundColor: _backgroundColor,
       appBar: AppBar(
         title: const Text("Daily Motivation"),
         backgroundColor: Colors.blue.shade400,
@@ -183,14 +250,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                spacing: 15,
                 children: [
                   ElevatedButton(
                     onPressed: changeText,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _buttonColor,
+                    ),
                     child: const Text("Get Motivation"),
                   ),
-                  const SizedBox(width: 15),
                   ElevatedButton(
                     onPressed: toggleFavorite,
                     style: ElevatedButton.styleFrom(
@@ -200,10 +269,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: const Text("Like"),
                   ),
-                  const SizedBox(width: 15),
                   ElevatedButton(
                     onPressed: shareQuote,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _buttonColor,
+                    ),
                     child: const Text("Share"),
+                  ),
+                  ElevatedButton(
+                    onPressed: changeBackgroundColor,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _buttonColor,
+                    ),
+                    child: const Text("Change BG"),
+                  ),
+                  ElevatedButton(
+                    onPressed: _showColorPickerDialog,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _buttonColor,
+                    ),
+                    child: const Text("Pick Button Color"),
                   ),
                 ],
               ),
@@ -215,6 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+// Favorites Screen
 class FavoritesScreen extends StatelessWidget {
   final List<String> favorites;
   const FavoritesScreen({super.key, required this.favorites});
